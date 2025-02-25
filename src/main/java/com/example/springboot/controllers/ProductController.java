@@ -1,85 +1,54 @@
 package com.example.springboot.controllers;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import com.example.springboot.models.Product; 
+import com.example.springboot.repositories.ProductRepository; 
+import org.springframework.beans.factory.annotation.Autowired; 
+import org.springframework.stereotype.Controller; 
+import org.springframework.ui.Model; 
+import org.springframework.web.bind.annotation.GetMapping; 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import jakarta.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Controller
 public class ProductController {
 
-    private static final List<Map<String, String>> products = new ArrayList<>(List.of(
-        Map.of("id", "1", "name", "TV", "description", "Best TV", "price", "150"),
-        Map.of("id", "2", "name", "iPhone", "description", "Best iPhone", "price", "250"),
-        Map.of("id", "3", "name", "Chromecast", "description", "Best Chromecast", "price", "75"),
-        Map.of("id", "4", "name", "Glasses", "description", "Best Glasses", "price", "27")
-    ));
-
+    @Autowired
+    private ProductRepository productRepository;
 
     @GetMapping("/products")
     public String index(Model model) {
-        model.addAttribute("title", "Products - Online Store");
-        model.addAttribute("subtitle", "List of products");
+        List<Product> products = productRepository.findAll(); 
+        model.addAttribute("title", "Products - Online Store"); 
+        model.addAttribute("subtitle", "List of products"); 
         model.addAttribute("products", products);
-        return "product/index";
+        return "product/index"; // Retorna la vista product/index.html (Thymeleaf)
     }
 
-
-    @GetMapping("/products/{id}")
-    public String show(@PathVariable String id, Model model) {
-        int productId = Integer.parseInt(id) - 1;
-
-        if (productId < 0 || productId >= products.size()) {
-            return "redirect:/";
-        }
-
-        Map<String, String> product = products.get(productId);
-        model.addAttribute("title", product.get("name") + " - Online Store");
-        model.addAttribute("subtitle", product.get("name") + " - Product Information");
-        model.addAttribute("product", product);
-        return "product/show";
+    @GetMapping("prducts/{id}")
+    public String show(@PathVariable("id") Long id, Model model) {
+        Product product = productRepository.findById(id) .orElseThrow(() -> new RuntimeException("Product not found")); 
+        model.addAttribute("title", product.getName() + " - Online Store"); 
+        model.addAttribute("subtitle", product.getName() + " - Product information"); 
+        model.addAttribute("product", product); 
+        return "product/show"; // Retorna la vista product/show.html (Thymeleaf)
     }
-
-    @GetMapping("/products/success")
-    public String about(Model model) {
-        model.addAttribute("title", "Successful");
-        model.addAttribute("subtitle", "Product created succesfully");
-        return "product/success";
-    }
-
-    @GetMapping("/products/create")
-    public String create(Model model) {
-        model.addAttribute("title", "Create Product");
-        model.addAttribute("productForm", new ProductForm());
-        return "product/create";
-    }
-
     
-    @PostMapping("/products/save")
-    public String save(@Valid @ModelAttribute("productForm") ProductForm productForm, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("title", "Create Product");       
-            return "product/create";     
-        }
-            
-        // Simulación de guardar el producto en la lista (sin persistencia en DB) 
-        Map<String, String> newProduct = new HashMap<>();        
-        newProduct.put("id", String.valueOf(products.size() + 1));        
-        newProduct.put("name", productForm.getName());        
-        newProduct.put("description", productForm.getDescription());
-        newProduct.put("price", String.valueOf(productForm.getPrice()));
-        products.add(newProduct);       
-            
-        return "redirect:/products/success";
-
+    @GetMapping("/products/create")
+    public String createProductForm(Model model) { 
+        model.addAttribute("product", new Product()); 
+        return "product/create"; 
     }
+
+    @PostMapping("/products") 
+    public String save(Product product) { 
+        // Validaciones mínimas 
+        if (product.getName() == null || product.getName().isEmpty() || product.getPrice() == null) { 
+            throw new RuntimeException("Name and Price are required"); 
+        } 
+        productRepository.save(product); 
+        return "redirect:/products"; }
 }
