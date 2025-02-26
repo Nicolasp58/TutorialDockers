@@ -28,13 +28,13 @@ public class ProductController {
         return "product/index"; // Retorna la vista product/index.html (Thymeleaf)
     }
 
-    @GetMapping("prducts/{id}")
-    public String show(@PathVariable("id") Long id, Model model) {
+    @GetMapping("/products/{id}") 
+    public String show(@PathVariable("id") Long id, Model model) { 
         Product product = productRepository.findById(id) .orElseThrow(() -> new RuntimeException("Product not found")); 
         model.addAttribute("title", product.getName() + " - Online Store"); 
         model.addAttribute("subtitle", product.getName() + " - Product information"); 
         model.addAttribute("product", product); 
-        return "product/show"; // Retorna la vista product/show.html (Thymeleaf)
+        return "product/show"; // Retorna la vista product/show.html (Thymeleaf)    
     }
     
     @GetMapping("/products/create")

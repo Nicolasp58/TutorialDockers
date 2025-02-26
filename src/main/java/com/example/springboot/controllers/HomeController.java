@@ -31,7 +31,7 @@ public class HomeController {
     public String contact(Model model) {
         model.addAttribute("title", "Contact - Online Store");
         model.addAttribute("subtitle", "Contact Us");
-        model.addAttribute("email", "e-mail: juans@gmail.com");
+        model.addAttribute("email", "E-mail: juans@gmail.com");
         model.addAttribute("address", "Address: avenida 123 carrera 23");
         model.addAttribute("phone", "Phone number: 3001646585");
         return "home/contact";
