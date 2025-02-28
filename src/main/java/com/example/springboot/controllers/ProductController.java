@@ -1,6 +1,8 @@
 package com.example.springboot.controllers;
 
-import com.example.springboot.models.Product; 
+import com.example.springboot.models.Product;
+import com.example.springboot.models.Comment;
+import com.example.springboot.repositories.CommentRepository;
 import com.example.springboot.repositories.ProductRepository; 
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.stereotype.Controller; 
@@ -19,6 +21,9 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     @GetMapping("/products")
     public String index(Model model) {
         List<Product> products = productRepository.findAll(); 
@@ -33,7 +38,8 @@ public class ProductController {
         Product product = productRepository.findById(id) .orElseThrow(() -> new RuntimeException("Product not found")); 
         model.addAttribute("title", product.getName() + " - Online Store"); 
         model.addAttribute("subtitle", product.getName() + " - Product information"); 
-        model.addAttribute("product", product); 
+        model.addAttribute("product", product);
+        model.addAttribute("comments", product.getComments()); 
         return "product/show"; // Retorna la vista product/show.html (Thymeleaf)    
     }
     
@@ -50,5 +56,16 @@ public class ProductController {
             throw new RuntimeException("Name and Price are required"); 
         } 
         productRepository.save(product); 
-        return "redirect:/products"; }
+        return "redirect:/products"; 
+    }
+
+    @PostMapping("/products/{id}/comments")
+    public String attachComment(@PathVariable("id") Long id, @RequestParam("description") String description) {
+        Product product = productRepository.findById(id) .orElseThrow(() -> new RuntimeException("Product not found"));
+        Comment comment = new Comment();
+        comment.setProduct(product);
+        comment.setDescription(description);
+        commentRepository.save(comment);
+        return "redirect:/products/" + id; 
+    }
 }
